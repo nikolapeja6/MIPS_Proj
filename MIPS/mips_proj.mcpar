@@ -29,7 +29,6 @@ Count=1
 [EEPROM]
 Count=0
 [ACTIVE_COMMENTS_FILES]
-File0=clicker_2_STM32.xml
 Count=1
 [OTHER_FILES]
 Count=0
