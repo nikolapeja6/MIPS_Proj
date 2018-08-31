@@ -1,0 +1,7 @@
+MIPS/*
+!*.c
+!*.h
+!*.cfg
+!*.hex
+!*.mcpar
+!*.xml
