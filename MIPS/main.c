@@ -30,7 +30,7 @@ void InitTimer2(){
 void Timer2_interrupt() iv IVT_INT_TIM2 {
   TIM2_SR.UIF = 0;
   
-     LD1 ^= 1;
+     //LD1 ^= 1;
 }
 
 //Timer3 Prescaler :0; Preload = 3072; Actual Interrupt Time = 204.866666667 us
@@ -95,29 +95,37 @@ void main() {
 
   // Set GPIO_PORTE pins 12 and 15 as digital output
   GPIO_Digital_Output(&GPIOE_BASE, _GPIO_PINMASK_12 | _GPIO_PINMASK_15);
-  
+
+  GPIO_Digital_Input(&GPIOE_BASE, _GPIO_PINMASK_6);
+
+
   GPIO_Digital_Output(&GPIOE_BASE, _GPIO_PINMASK_1 );
   
   LD1 = 1;
   LD2 = 0;
   
-  SPEAKER = 1;
+  SPEAKER = 0;
   
   InitTimer2();
   InitTimer3();
   
   while(1){
-  
+
     update();
     
     speakerTurnedOn = (speakerTurnedOn + buttonRisingEdge)%2;
 
+
     if (buttonPressed()) {
-        LD2 = 1;
+        LD1 = 1;
     }
     else{
-         LD2 = 0;
+         LD1 = 0;
     }
+                     
+   LD2 =  GPIOE_IDR.B6;
+    
+    
   }
   
 }
