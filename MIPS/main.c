@@ -6,6 +6,12 @@ sbit SPEAKER at ODR1_GPIOE_ODR_bit;
 
 
 /*********************************
+***         Global Vars        ***
+*********************************/
+int speakerTurnedOn = 0;
+
+
+/*********************************
 ***         Timers             ***
 *********************************/
 
@@ -42,19 +48,40 @@ void InitTimer3(){
 
 void Timer3_interrupt() iv IVT_INT_TIM3 {
   TIM3_SR.UIF = 0;
-  SPEAKER ^= 1;
+  if(speakerTurnedOn)
+     SPEAKER ^= 1;
 }
 
 /********************************
 ***         Buttons           ***
 ********************************/
 
+int buttonRisingEdge = 0;
+int buttonStateOld = 0;
+int buttonStateNew = 0;
 int buttonPressed()
 {
      return Button(&GPIOA_IDR, 10, 2, 0);
 }
 
 
+/******************************
+***         Helpers         ***
+******************************/
+
+void update(){
+     // check T2 button
+    if (Button(&GPIOA_IDR, 10, 2, 0)) {           // Detect logical zero
+      buttonStateOld = 1;                              // Update flag
+    }
+    if (buttonStateOld && Button(&GPIOA_IDR, 10, 2, 1)) {   // Detect zero-to-one transition
+      buttonStateOld = 0;
+      buttonRisingEdge = 1;
+    }
+    else{
+         buttonRisingEdge = 0;
+    }
+}
 
 /******************************
 ***         Main            ***
@@ -80,6 +107,10 @@ void main() {
   InitTimer3();
   
   while(1){
+  
+    update();
+    
+    speakerTurnedOn = (speakerTurnedOn + buttonRisingEdge)%2;
 
     if (buttonPressed()) {
         LD2 = 1;
