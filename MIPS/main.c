@@ -4,6 +4,11 @@ sbit LD2 at ODR15_GPIOE_ODR_bit;
 
 sbit SPEAKER at ODR1_GPIOE_ODR_bit;
 
+
+/*********************************
+***         Timers             ***
+*********************************/
+
 //Timer2 Prescaler :959; Preload = 62499; Actual Interrupt Time = 500 ms
 void InitTimer2(){
   RCC_APB1ENR.TIM2EN = 1;
@@ -18,12 +23,9 @@ void InitTimer2(){
 // ISR
 void Timer2_interrupt() iv IVT_INT_TIM2 {
   TIM2_SR.UIF = 0;
-
+  
      LD1 ^= 1;
-     LD2 ^= 1;
 }
-
-
 
 //Timer3 Prescaler :0; Preload = 3072; Actual Interrupt Time = 204.866666667 us
 
@@ -43,12 +45,23 @@ void Timer3_interrupt() iv IVT_INT_TIM3 {
   SPEAKER ^= 1;
 }
 
+/********************************
+***         Buttons           ***
+********************************/
 
+int buttonPressed()
+{
+     return Button(&GPIOA_IDR, 10, 2, 0);
+}
+
+
+
+/******************************
+***         Main            ***
+******************************/
 
 // main function
 void main() {
-  // Set GPIO_PORTE pin 0 as digital input
-  //GPIO_Digital_Input(&GPIOE_BASE, _GPIO_PINMASK_0);
 
   // Set GPIO_PORTA pin 10 as digital input
   GPIO_Digital_Input(&GPIOA_BASE, _GPIO_PINMASK_10);
@@ -67,7 +80,13 @@ void main() {
   InitTimer3();
   
   while(1){
-  
+
+    if (buttonPressed()) {
+        LD2 = 1;
+    }
+    else{
+         LD2 = 0;
+    }
   }
   
 }
