@@ -141,7 +141,9 @@ void main() {
 
     update();
     
-    speakerTurnedOn = (speakerTurnedOn + buttonRisingEdge)%2;
+    speakerTurnedOn = speakerTurnedOn || GPIOE_IDR.B6;
+    if(buttonRisingEdge)
+     speakerTurnedOn = 0;
 
 
     if (buttonPressed()) {
