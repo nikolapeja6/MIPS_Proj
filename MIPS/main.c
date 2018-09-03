@@ -14,9 +14,42 @@ int tone = 0;
 int toneCnt = TONE_DURATION;
 
 
+const int COOLDOWN_SECS = 10;
+int cooldownCnt = COOLDOWN_SECS;
+int isInCooldown = 0;
+
+
 /*********************************
 ***         Timers             ***
 *********************************/
+
+
+// Cooldown
+
+//Timer2 Prescaler :1199; Preload = 62499; Actual Interrupt Time = 5 s
+
+//Place/Copy this part in declaration section
+void InitTimer2(){
+  RCC_APB1ENR.TIM2EN = 1;
+  TIM2_CR1.CEN = 0;
+  TIM2_PSC = 239;
+  TIM2_ARR = 62499;
+  NVIC_IntEnable(IVT_INT_TIM2);
+  TIM2_DIER.UIE = 1;
+  TIM2_CR1.CEN = 1;
+}
+
+void Timer2_interrupt() iv IVT_INT_TIM2 {
+  TIM2_SR.UIF = 0;
+  if(isInCooldown){
+                   cooldownCnt--;
+                   speakerTurnedOn = 0;
+                   if(cooldownCnt <= 0){
+                                  isInCooldown = 0;
+                                  cooldownCnt = COOLDOWN_SECS;
+                   }
+  }
+}
 
 
 
@@ -43,7 +76,7 @@ void Timer3_interrupt() iv IVT_INT_TIM3 {
    tone = 0;
   }
 
-  if(speakerTurnedOn && tone == toneId)  {
+  if(speakerTurnedOn && tone == toneId && !isInCooldown)  {
      SPEAKER ^= 1;
      toneCnt--;
      
@@ -68,7 +101,7 @@ void InitTimer4(){
 void Timer4_interrupt() iv IVT_INT_TIM4 {
  const int toneId = 1;
   TIM4_SR.UIF = 0;
-    if(speakerTurnedOn && tone == toneId)  {
+    if(speakerTurnedOn && tone == toneId && !isInCooldown)  {
      SPEAKER ^= 1;
      toneCnt--;
 
@@ -111,6 +144,8 @@ void update(){
     }
 }
 
+
+
 /******************************
 ***         Main            ***
 ******************************/
@@ -134,6 +169,7 @@ void main() {
   
   SPEAKER = 0;
   
+  InitTimer2();
   InitTimer3();
   InitTimer4();
   
@@ -142,16 +178,12 @@ void main() {
     update();
     
     speakerTurnedOn = speakerTurnedOn || GPIOE_IDR.B6;
-    if(buttonRisingEdge)
-     speakerTurnedOn = 0;
+    if(buttonPressed())  {
+    isInCooldown = 1;
+     speakerTurnedOn = 0;    
+     }
 
-
-    if (buttonPressed()) {
-        LD1 = 1;
-    }
-    else{
-         LD1 = 0;
-    }
+     LD1 = isInCooldown;
                      
    LD2 =  GPIOE_IDR.B6;
     
