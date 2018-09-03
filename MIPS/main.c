@@ -4,34 +4,21 @@ sbit LD2 at ODR15_GPIOE_ODR_bit;
 
 sbit SPEAKER at ODR1_GPIOE_ODR_bit;
 
-
 /*********************************
 ***         Global Vars        ***
 *********************************/
 int speakerTurnedOn = 0;
+
+const int TONE_DURATION = 2000;
+int tone = 0;
+int toneCnt = TONE_DURATION;
 
 
 /*********************************
 ***         Timers             ***
 *********************************/
 
-//Timer2 Prescaler :959; Preload = 62499; Actual Interrupt Time = 500 ms
-void InitTimer2(){
-  RCC_APB1ENR.TIM2EN = 1;
-  TIM2_CR1.CEN = 0;
-  TIM2_PSC = 119;//959;
-  TIM2_ARR = 62499;
-  NVIC_IntEnable(IVT_INT_TIM2);
-  TIM2_DIER.UIE = 1;
-  TIM2_CR1.CEN = 1;
-}
 
-// ISR
-void Timer2_interrupt() iv IVT_INT_TIM2 {
-  TIM2_SR.UIF = 0;
-  
-     //LD1 ^= 1;
-}
 
 //Timer3 Prescaler :0; Preload = 3072; Actual Interrupt Time = 204.866666667 us
 
@@ -47,9 +34,50 @@ void InitTimer3(){
 }
 
 void Timer3_interrupt() iv IVT_INT_TIM3 {
+ const int toneId = 0;
   TIM3_SR.UIF = 0;
-  if(speakerTurnedOn)
+  
+  if(!speakerTurnedOn)
+  {
+   toneCnt = TONE_DURATION;
+   tone = 0;
+  }
+
+  if(speakerTurnedOn && tone == toneId)  {
      SPEAKER ^= 1;
+     toneCnt--;
+     
+     if(toneCnt <= 0){
+        toneCnt = TONE_DURATION;
+        tone = (tone +1 )%2;
+     }
+  }
+}
+
+//Place/Copy this part in declaration section
+void InitTimer4(){
+  RCC_APB1ENR.TIM4EN = 1;
+  TIM4_CR1.CEN = 0;
+  TIM4_PSC = 0;
+  TIM4_ARR = 6144;
+  NVIC_IntEnable(IVT_INT_TIM4);
+  TIM4_DIER.UIE = 1;
+  TIM4_CR1.CEN = 1;
+}
+
+void Timer4_interrupt() iv IVT_INT_TIM4 {
+ const int toneId = 1;
+  TIM4_SR.UIF = 0;
+    if(speakerTurnedOn && tone == toneId)  {
+     SPEAKER ^= 1;
+     toneCnt--;
+
+     if(toneCnt <= 0){
+        toneCnt = TONE_DURATION;
+        tone = (tone +1 )%2;
+     }
+  }
+
 }
 
 /********************************
@@ -106,8 +134,8 @@ void main() {
   
   SPEAKER = 0;
   
-  InitTimer2();
   InitTimer3();
+  InitTimer4();
   
   while(1){
 
