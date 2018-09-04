@@ -1,3 +1,5 @@
+#include "rfid.h"
+
 // pin definitions
 sbit LD1 at ODR12_GPIOE_ODR_bit;
 sbit LD2 at ODR15_GPIOE_ODR_bit;
@@ -167,6 +169,8 @@ void main() {
   LD1 = 1;
   LD2 = 0;
   
+  InitRFID();
+  
   SPEAKER = 0;
   
   InitTimer2();
@@ -179,13 +183,15 @@ void main() {
     
     speakerTurnedOn = speakerTurnedOn || GPIOE_IDR.B6;
     if(buttonPressed())  {
-    isInCooldown = 1;
-     speakerTurnedOn = 0;    
+      isInCooldown = 1;
+       speakerTurnedOn = 0;
      }
 
-     LD1 = isInCooldown;
+
+
+     LD1 = iteration();
                      
-   LD2 =  GPIOE_IDR.B6;
+     LD2 =  GPIOE_IDR.B6;
     
     
   }
