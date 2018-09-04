@@ -491,7 +491,7 @@ void MFRC522_Halt(void)
     */
     
     
-    
+void transitionToSecure();
     
 uchar iteration(){
 uchar i,tmp;
@@ -530,10 +530,14 @@ uchar i,tmp;
                          if(acceptSerNum[i] != serNum[i])
                                             diff = 1;
                                             
-                         if(diff)
-                         return 0;
-                         else
+                         if(diff){
+                                  return 0;
+                         }
+                         else {
+                                                           transitionToSecure();
+                         
                          return 1;
+                         }
 		
                         //Serial.println("The card's number is  : ");
 			  return 111;

@@ -1,5 +1,8 @@
 #include "rfid.h"
 
+
+enum State {Secure, Armed, Agitated, Breached};
+
 // pin definitions
 sbit LD1 at ODR12_GPIOE_ODR_bit;
 sbit LD2 at ODR15_GPIOE_ODR_bit;
@@ -9,7 +12,8 @@ sbit SPEAKER at ODR1_GPIOE_ODR_bit;
 /*********************************
 ***         Global Vars        ***
 *********************************/
-int speakerTurnedOn = 0;
+volatile int speakerTurnedOn = 0;
+volatile int state = Secure;
 
 const int TONE_DURATION = 2000;
 int tone = 0;
@@ -17,9 +21,39 @@ int toneCnt = TONE_DURATION;
 
 
 const int COOLDOWN_SECS = 10;
-int cooldownCnt = COOLDOWN_SECS;
-int isInCooldown = 0;
+const int AGITATED_SECS = 5;
+int cooldownCnt = AGITATED_SECS;
 
+
+void transitionToAgitated(){
+     if(state == Secure)
+     return;
+     
+     cooldownCnt = AGITATED_SECS;
+     state = Agitated;
+     speakerTurnedOn = 0;
+}
+
+void transitionToBreached(){
+     if(state == Secure)
+     return;
+
+	cooldownCnt = COOLDOWN_SECS;
+     speakerTurnedOn = 1;
+     state = Breached;
+}
+
+void transitionToSecure(){
+     cooldownCnt = COOLDOWN_SECS;
+     state = Secure;
+     speakerTurnedOn = 0;
+}
+
+void transitionToArmed(){
+     cooldownCnt = AGITATED_SECS;
+     state = Armed;
+     speakerTurnedOn = 0;
+}
 
 /*********************************
 ***         Timers             ***
@@ -28,7 +62,7 @@ int isInCooldown = 0;
 
 // Cooldown
 
-//Timer2 Prescaler :1199; Preload = 62499; Actual Interrupt Time = 5 s
+//Timer2 Prescaler :239; Preload = 62499; Actual Interrupt Time = 1 s
 
 //Place/Copy this part in declaration section
 void InitTimer2(){
@@ -43,12 +77,11 @@ void InitTimer2(){
 
 void Timer2_interrupt() iv IVT_INT_TIM2 {
   TIM2_SR.UIF = 0;
-  if(isInCooldown){
+  if(state == Agitated){
                    cooldownCnt--;
                    speakerTurnedOn = 0;
                    if(cooldownCnt <= 0){
-                                  isInCooldown = 0;
-                                  cooldownCnt = COOLDOWN_SECS;
+                                           transitionToBreached();
                    }
   }
 }
@@ -78,7 +111,7 @@ void Timer3_interrupt() iv IVT_INT_TIM3 {
    tone = 0;
   }
 
-  if(speakerTurnedOn && tone == toneId && !isInCooldown)  {
+  if(speakerTurnedOn && tone == toneId && state == Breached)  {
      SPEAKER ^= 1;
      toneCnt--;
      
@@ -103,7 +136,7 @@ void InitTimer4(){
 void Timer4_interrupt() iv IVT_INT_TIM4 {
  const int toneId = 1;
   TIM4_SR.UIF = 0;
-    if(speakerTurnedOn && tone == toneId && !isInCooldown)  {
+    if(speakerTurnedOn && tone == toneId && state == Breached)  {
      SPEAKER ^= 1;
      toneCnt--;
 
@@ -131,11 +164,14 @@ int buttonPressed()
 /******************************
 ***         Helpers         ***
 ******************************/
-
+ /*
 void update(){
      // check T2 button
     if (Button(&GPIOA_IDR, 10, 2, 0)) {           // Detect logical zero
       buttonStateOld = 1;                              // Update flag
+      
+      transitionToArmed();
+      
     }
     if (buttonStateOld && Button(&GPIOA_IDR, 10, 2, 1)) {   // Detect zero-to-one transition
       buttonStateOld = 0;
@@ -145,6 +181,7 @@ void update(){
          buttonRisingEdge = 0;
     }
 }
+*/
 
 
 
@@ -178,22 +215,19 @@ void main() {
   InitTimer4();
   
   while(1){
+       LD1 = iteration();
 
-    update();
-    
-    speakerTurnedOn = speakerTurnedOn || GPIOE_IDR.B6;
-    if(buttonPressed())  {
-      isInCooldown = 1;
-       speakerTurnedOn = 0;
-     }
-
-
-
-     LD1 = iteration();
-                     
      LD2 =  GPIOE_IDR.B6;
-    
-    
-  }
   
+
+    //update();
+    
+    if(state == Armed && GPIOE_IDR.B6){
+                         transitionToAgitated();
+    }
+    
+    if(state == Secure && buttonPressed())  {
+      transitionToArmed();
+     }
+  }
 }
