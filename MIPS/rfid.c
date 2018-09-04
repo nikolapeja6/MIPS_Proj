@@ -14,7 +14,7 @@ uchar sectorKeyA[16][16] = {{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
                                };
     
     
- sbit SoftSpi_CLK at GPIOB_ODR.B13;
+sbit SoftSpi_CLK at GPIOB_ODR.B13;
 sbit SoftSpi_SDI at GPIOB_IDR.B14;
 sbit SoftSpi_SDO at GPIOB_ODR.B15;
 
@@ -27,6 +27,8 @@ sbit NRSTPD at GPIOE_ODR.B13;
 
 #define HIGH 1
 #define LOW 0
+
+uchar acceptSerNum[5] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 
 
@@ -498,26 +500,41 @@ uchar i,tmp;
         uchar RC_size;
         uchar blockAddr;	//Select the address of the operation 0~63
         
-
+                   int diff = 0;
 
 		// searching card, return card type
 		status = MFRC522_Request(PICC_REQIDL, str);
 		if (status == MI_OK)
 		{
-                     return 1;
+                     //return 1;
 		}
 		
-		if(status == MI_NOTAGERR)
-		return 0;
+		//if(status == MI_NOTAGERR)
+		//return 0;
 		
-		if(status ==  MI_ERR)
-		return 0;
+		//if(status ==  MI_ERR)
+		//return 0;
 
 
 		status = MFRC522_Anticoll(str);
 		memcpy(serNum, str, 5);
 		if (status == MI_OK)
 		{
+                           if(acceptSerNum[0] == 0xFF){
+                            for(i =0; i< 5; i++)
+                                    acceptSerNum[i] = serNum[i];
+                           }
+                           
+                           
+                         for(i =0; i<5;i++)
+                         if(acceptSerNum[i] != serNum[i])
+                                            diff = 1;
+                                            
+                         if(diff)
+                         return 0;
+                         else
+                         return 1;
+		
                         //Serial.println("The card's number is  : ");
 			  return 111;
 			//TODO
@@ -529,6 +546,7 @@ uchar i,tmp;
 			
                         //Serial.println(" ");
 		}
+		
 		
 		return 000;
 
