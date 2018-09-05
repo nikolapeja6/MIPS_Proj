@@ -24,6 +24,11 @@ const int COOLDOWN_SECS = 10;
 const int AGITATED_SECS = 5;
 int cooldownCnt = AGITATED_SECS;
 
+const int AGITATED_BEEP_CNT = 7;
+int agitatedBeepCnt = AGITATED_BEEP_CNT;
+const int AGITATED_BEEP_DURATION = 30;
+int agitatedBeepDuration = AGITATED_BEEP_DURATION;
+
 
 void transitionToAgitated(){
      if(state == Secure)
@@ -31,7 +36,10 @@ void transitionToAgitated(){
      
      cooldownCnt = AGITATED_SECS;
      state = Agitated;
-     speakerTurnedOn = 0;
+     speakerTurnedOn = 1;
+     
+     agitatedBeepCnt = AGITATED_BEEP_CNT;
+     agitatedBeepDuration = AGITATED_BEEP_DURATION;
 }
 
 void transitionToBreached(){
@@ -162,6 +170,42 @@ void Timer4_interrupt() iv IVT_INT_TIM4 {
 
 }
 
+
+//Timer7 Prescaler :0; Preload = 17044; Actual Interrupt Time = 1.136333333 ms
+
+//Place/Copy this part in declaration section
+void InitTimer7(){
+  RCC_APB1ENR.TIM7EN = 1;
+  TIM7_CR1.CEN = 0;
+  TIM3_PSC = 0;
+  TIM3_ARR = 3072;
+  NVIC_IntEnable(IVT_INT_TIM7);
+  TIM7_DIER.UIE = 1;
+  TIM7_CR1.CEN = 1;
+}
+
+
+void Timer7_interrupt() iv IVT_INT_TIM7 {
+  TIM7_SR.UIF = 0;
+  if(speakerTurnedOn && state == Agitated)  {
+
+     agitatedBeepDuration--;
+
+     if(agitatedBeepDuration <= 0){
+     agitatedBeepDuration = AGITATED_BEEP_DURATION;
+         agitatedBeepCnt--;
+         if(agitatedBeepCnt < 0){
+              agitatedBeepCnt = AGITATED_BEEP_CNT;
+         }
+     }
+     
+      if(agitatedBeepCnt <=0 ){
+      SPEAKER ^= 1;
+      }
+  }
+}
+
+
 /********************************
 ***         Buttons           ***
 ********************************/
@@ -227,6 +271,7 @@ void main() {
   InitTimer2();
   InitTimer3();
   InitTimer4();
+  InitTimer7();
   
   while(1){
            iteration();
