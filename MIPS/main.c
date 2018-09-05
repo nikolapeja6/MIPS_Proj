@@ -1,7 +1,7 @@
 #include "rfid.h"
 
 
-enum State {Secure, Armed, Agitated, Breached};
+enum State {Secure, Armed, Agitated, Breached, Arming};
 
 // pin definitions
 sbit LD1 at ODR12_GPIOE_ODR_bit;
@@ -50,8 +50,16 @@ void transitionToSecure(){
 }
 
 void transitionToArmed(){
+     if(state == Secure)
+     return;
      cooldownCnt = AGITATED_SECS;
      state = Armed;
+     speakerTurnedOn = 0;
+}
+
+void transitionToArming(){
+     cooldownCnt = COOLDOWN_SECS;
+     state = Arming;
      speakerTurnedOn = 0;
 }
 
@@ -77,11 +85,17 @@ void InitTimer2(){
 
 void Timer2_interrupt() iv IVT_INT_TIM2 {
   TIM2_SR.UIF = 0;
-  if(state == Agitated){
+  if(state == Agitated || state == Arming){
                    cooldownCnt--;
-                   speakerTurnedOn = 0;
+                   //speakerTurnedOn = 0;
                    if(cooldownCnt <= 0){
+                   
+                   if(state == Agitated){
                                            transitionToBreached();
+                                           }
+                                           else{
+                                                transitionToArmed();
+                                           }
                    }
   }
 }
@@ -215,9 +229,11 @@ void main() {
   InitTimer4();
   
   while(1){
-       LD1 = iteration();
+           iteration();
+  
+       LD1 = state != Secure && state != Arming;//iteration();
 
-     LD2 =  GPIOE_IDR.B6;
+     LD2 =  state == Arming || state == Agitated; //GPIOE_IDR.B6;
   
 
     //update();
@@ -227,7 +243,7 @@ void main() {
     }
     
     if(state == Secure && buttonPressed())  {
-      transitionToArmed();
+      transitionToArming();
      }
   }
 }
