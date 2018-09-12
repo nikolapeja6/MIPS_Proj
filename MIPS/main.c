@@ -3,6 +3,25 @@
 #include "timers.h"
 #include "general.h"
 
+//
+// Hardware setup
+//
+// Speaker+ is connected to PE1, Speaker- is connected to GND.
+//
+// The motion detector input is PE6. The motion detector is also connected to GND.
+// Relative to the motion detector having detected or not detected motion, the input pin has
+// the value of 0 or 1.
+//
+// The RFID-RC522 module is connected as follows:
+//      - VCC   is connected to 3.3v
+//      - RST   is connected to PE13
+//      - GND   is connected to GND
+//      - MISO	is connected to PB14
+//      - MOSI	is connected to PB15
+//      - SCK	is connected to PB13
+//      - NSS	is connected to PE11
+//
+
 
 // Pin definitions.
 //
