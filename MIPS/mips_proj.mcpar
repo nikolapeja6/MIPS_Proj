@@ -6,7 +6,7 @@ Value=0
 [BUILD_TYPE]
 Value=0
 [ACTIVE_TAB]
-Value=main.c
+Value=NewUnit_0.c
 [USE_EEPROM]
 Value=0
 [EEPROM_DEFINITION]
@@ -18,7 +18,10 @@ Value=2000
 [FILES]
 File0=main.c
 File1=rfid.c
-Count=2
+File2=rfid_interface.c
+File3=states.c
+File4=timers.c
+Count=5
 [BINARIES]
 Count=0
 [IMAGES]
@@ -28,7 +31,14 @@ ActiveImageIndex=-1
 File0=main.c
 File1=rfid.c
 File2=rfid.h
-Count=3
+File3=rfid_interface.h
+File4=general.h
+File5=rfid_interface.c
+File6=states.h
+File7=states.c
+File8=timers.h
+File9=timers.c
+Count=10
 [EEPROM]
 Count=0
 [ACTIVE_COMMENTS_FILES]
@@ -45,7 +55,11 @@ Path1=..\..\..\mikroC PRO for ARM\Packages\Memory manager dlmalloc\Uses\
 Count=2
 [HEADERS]
 File0=rfid.h
-Count=1
+File1=rfid_interface.h
+File2=general.h
+File3=states.h
+File4=timers.h
+Count=5
 [PLDS]
 Count=0
 [Useses]
@@ -61,8 +75,7 @@ Count=8
 [EXPANDED_NODES]
 0=mips_proj.mcpar
 1=Sources
-4=Header Files
-Count=3
+Count=2
 [PROGRAMMER_OPTIONS]
 Value=SWD
 [PROGRAMMER_TYPE]
