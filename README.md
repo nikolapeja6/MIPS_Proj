@@ -8,12 +8,12 @@ The core of the Home Alarm system is the STM32 microcontroller on the [MikroElek
 
 During development, code for interacting with the RFID-RC522 module from an Arduino was used, with minor ajdustments made in order to translate it for the Clicker 2 board. The original code for Arduino can be found [here][original_rfid_code].
 
-A demo of the system can be found [here][demo].
+A demo of the system can be found bellow.
 
+[![Demo video.](https://i.ytimg.com/vi/hSoqx0P2P3c/1.jpg?time=1538526714243)](https://youtu.be/hSoqx0P2P3c)
 
 [school]: https://www.etf.bg.ac.rs/en
 [university]: http://www.bg.ac.rs/en/
-[demo]: https://youtu.be/hSoqx0P2P3c
 [mikroe]: https://www.mikroe.com/
 [clicker2]: https://www.mikroe.com/clicker-2-stm32f4
 [original_rfid_code]: http://wiki.keyestudio.com/index.php/Ks0067_keyestudio_RC522_RFID_Module_for_Arduino
